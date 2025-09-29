@@ -235,8 +235,8 @@ The CI workflow builds, smoke-tests, and can push the Docker image to Docker Hub
 - Workflow file: `.github/workflows/ci.yml` (unified CI + Docker publish)
 - Image repository: `ltsiciliano/k8s-cert-lab-user`
 - When it runs:
-  - On pushes to `main`, it pushes the image tagged as `latest` and with the short commit SHA.
-  - On tag pushes (e.g., `v1.0.0`), it pushes the image with that tag and with the short commit SHA.
+  - On any push or pull request in this repository, it builds and publishes the Docker image.
+  - Tagging rules: on `main` -> `latest`; on tag pushes (e.g., `v1.0.0`) -> that tag; on other branches -> sanitized branch name. In all cases, it also pushes the short commit SHA tag.
   - You can also trigger it manually via the Actions tab.
 
 Setup steps:
