@@ -1,0 +1,52 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1-create-users-table
+      author: junie
+      changes:
+        - createTable:
+            tableName: users
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: email
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: cpf
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: false
+  - changeSet:
+      id: 2-insert-sample-users
+      author: junie
+      changes:
+        - insert:
+            tableName: users
+            columns:
+              - column: { name: name, value: "Maria Silva" }
+              - column: { name: email, value: "maria@example.com" }
+              - column: { name: cpf, value: "12345678900" }
+        - insert:
+            tableName: users
+            columns:
+              - column: { name: name, value: "João Souza" }
+              - column: { name: email, value: "joao@example.com" }
+              - column: { name: cpf, value: "98765432100" }
+        - insert:
+            tableName: users
+            columns:
+              - column: { name: name, value: "Ana Costa" }
+              - column: { name: email, value: "ana@example.com" }
+              - column: { name: cpf, value: "11122233344" }

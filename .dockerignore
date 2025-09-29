@@ -1,0 +1,20 @@
+# Docker ignore
+# Maven build output
+/target/
+
+# VCS
+.git
+.gitignore
+.github/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Misc
+*.log
