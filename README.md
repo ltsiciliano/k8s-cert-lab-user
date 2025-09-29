@@ -226,3 +226,27 @@ docker push $LATEST
 Notes:
 - Default container port is 7050. You can change the container's internal port by setting env PORT, but remember to adjust the host mapping accordingly.
 - Keep versions consistent (e.g., 0.1.0, 0.1.1, etc.) when publishing to Docker Hub.
+
+
+## CI/CD: Publish Docker image to Docker Hub via GitHub Actions
+
+The CI workflow builds, smoke-tests, and can push the Docker image to Docker Hub using repository secrets `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN`.
+
+- Workflow file: `.github/workflows/ci.yml` (unified CI + Docker publish)
+- Image repository: `ltsiciliano/k8s-cert-lab-user`
+- When it runs:
+  - On pushes to `main`, it pushes the image tagged as `latest` and with the short commit SHA.
+  - On tag pushes (e.g., `v1.0.0`), it pushes the image with that tag and with the short commit SHA.
+  - You can also trigger it manually via the Actions tab.
+
+Setup steps:
+1) In your GitHub repository settings, add these Actions secrets:
+   - `DOCKERHUB_USERNAME` = your Docker Hub username
+   - `DOCKERHUB_TOKEN` = a Docker Hub access token (Docker Hub > Account Settings > Security > New Access Token)
+2) Push to `main`, push a git tag (e.g., `git tag v0.1.0 && git push --tags`), or manually trigger the workflow via Actions tab.
+3) The workflow will:
+   - Build the image from the repository Dockerfile
+   - Run a smoke test container and check `http://localhost:7050/actuator/health`
+   - Push the image to `docker.io/ltsiciliano/k8s-cert-lab-user` with the resolved tags
+
+You can continue to build and push manually if you prefer (see Docker section), but the workflow automates it and guarantees the image starts up correctly.

@@ -3,8 +3,13 @@ name: CI
 on:
   push:
     branches: ["**"]
+    tags: ["v*", "*.*.*", "release-*"]
   pull_request:
     branches: ["**"]
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: ltsiciliano/k8s-cert-lab-user
 
 jobs:
   build:
@@ -22,3 +27,59 @@ jobs:
 
       - name: Build and test with Maven
         run: mvn -B -ntp verify
+
+  docker:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main'))
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Determine tag
+        id: vars
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            TAG="${GITHUB_REF_NAME}"
+          elif [[ "${GITHUB_REF_NAME}" == "main" ]]; then
+            TAG="latest"
+          else
+            # sanitize branch to be a valid tag
+            TAG="${GITHUB_REF_NAME//\//-}"
+          fi
+          echo "TAG=$TAG" >> "$GITHUB_OUTPUT"
+          echo "SHA_TAG=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - name: Build image (local)
+        run: |
+          docker build -t $IMAGE_NAME:${{ steps.vars.outputs.SHA_TAG }} .
+
+      - name: Smoke test container
+        run: |
+          set -euo pipefail
+          docker run -d -p 7050:7050 --name user-svc -e API_KEY=ci-secret $IMAGE_NAME:${{ steps.vars.outputs.SHA_TAG }}
+          # Wait up to ~60s for health to be UP
+          for i in {1..30}; do
+            if curl -fsS http://localhost:7050/actuator/health >/dev/null; then
+              echo "Health OK"; break; fi; sleep 2; done
+          # Show health output
+          curl -fsS http://localhost:7050/actuator/health
+          # Show a few last logs for debugging
+          docker logs user-svc --tail 100 || true
+          docker stop user-svc
+          docker rm -f user-svc
+
+      - name: Tag image
+        run: |
+          docker tag $IMAGE_NAME:${{ steps.vars.outputs.SHA_TAG }} $IMAGE_NAME:${{ steps.vars.outputs.TAG }}
+
+      - name: Push images
+        run: |
+          docker push $IMAGE_NAME:${{ steps.vars.outputs.SHA_TAG }}
+          docker push $IMAGE_NAME:${{ steps.vars.outputs.TAG }}
