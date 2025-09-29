@@ -46,6 +46,6 @@ public class ApiKeyFilter extends OncePerRequestFilter {
     }
 
     private boolean isSwaggerPath(String path) {
-        return path.startsWith("/swagger-ui") || path.startsWith("/v3/api-docs");
+        return path.startsWith("/swagger-ui") || path.startsWith("/v3/api-docs") || path.startsWith("/actuator");
     }
 }

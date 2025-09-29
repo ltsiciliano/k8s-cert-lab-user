@@ -38,7 +38,7 @@ Service will start on http://localhost:7050
 
 ## Endpoints
 
-All endpoints require header: `X-API-KEY: <your API_KEY>`
+All endpoints (except Actuator) require header: `X-API-KEY: <your API_KEY>`
 
 - GET `/users`
   - Response
@@ -69,7 +69,7 @@ All endpoints require header: `X-API-KEY: <your API_KEY>`
   - Validations: name not empty, email valid, cpf not empty
   - On validation error returns 400 with details
 
-- Actuator (requires API key as well):
+- Actuator (no API key required):
   - Root: http://localhost:7050/actuator
   - Health: http://localhost:7050/actuator/health
   - Info: http://localhost:7050/actuator/info
@@ -113,7 +113,7 @@ curl -X POST "$API/users" \
   -d '{"name":"Ana","email":"ana@example.com","cpf":"11122233344"}'
 
 # Health via Actuator
-curl -H "X-API-KEY: $KEY" "$API/actuator/health"
+curl "$API/actuator/health"
 ```
 
 ## Configuration via environment variables
@@ -208,7 +208,7 @@ docker run --rm \
   $IMAGE
 
 # 3) Test
-curl -H "X-API-KEY: my-secret" http://localhost:7050/actuator/health
+curl http://localhost:7050/actuator/health
 
 # 4) Push to Docker Hub (version the image)
 # Login first (interactive)
